@@ -1,0 +1,3 @@
+## MedDecision on ObjectRocket: A HIPA compliant, massively performant, FusionIO flashed based MongoDB rack of compute.
+
+In this talk, Kenny Gorman will explain how ObjectRocket built out a entirely new kind of cloud infrastructure for MedDecision. He will talk about the core decisions made for designing a dedicated rack architecture, FusionIO PCIe flash storage, encryption at rest, and dedicated networking components. He will go over the hardware and software including the particulars of this very unique MongoDB configuration. He will dive into the details and decisions made to get this tough workload to scale to millions of MongoDB OPS all while remaining fault tolerant.
