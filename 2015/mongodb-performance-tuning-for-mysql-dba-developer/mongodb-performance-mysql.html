@@ -23,7 +23,7 @@ body {
   font-family: 'Merriweather', sans-serif;
   color: #191919;
   background-color: #fafafa;
-  font-size: 100%;
+  font-size: 80%;
 }
 
 /* custom slide styles */
@@ -34,13 +34,16 @@ body {
   /* background: #999 url(fade.jpg) center center no-repeat; */
   background: url('background.jpg');
   background-size: cover;
+  text-align: right;
+  text-height: 12px;
+  line-height: normal;
+  padding: 10px;
+  border-top: 12px;
 }
 
 #slide-1 h1 {
   color: #000;
-}
-.center {
-  text-align: center;
+  text-align: right;
 }
 
 img.badge {
@@ -220,7 +223,7 @@ a:hover {
 }
 
 pre {
-  font-size: 75%;
+  font-size: 60%;
   line-height: 1.3;
 }
 
@@ -261,7 +264,7 @@ code {
 
 pre code {
   display: block;
-  font-family: 'Source Code Pro';
+  font-family: 'Hack';
   font-weight: 400;
   padding: 0.5em;
   background: #272822;
@@ -484,11 +487,11 @@ pre .xml .cdata {
   </div>
 
   <div class="slide" id="slide-1">
-    <section class="slide-content"><h1 id="mongodb-performance-tuning">MongoDB Performance Tuning</h1>
-<h2 id="for-mysql-dba-s-and-developers">for MySQL DBA&#39;s and Developers</h2>
-<p>Kenny Gorman</p>
-<p>Chief Technologist; Data @ Rackspace</p>
-<p>Co-Founder @ ObjectRocket</p>
+    <section class="slide-content"><h1 id="mongodb-br-performance-br-tuning">MongoDB<br>Performance<br>Tuning</h1>
+<p><strong>for MySQL DBA&#39;s and Developers</strong></p>
+<p><em>Kenny Gorman</em><br>
+<em>Chief Technologist; Data @ Rackspace</em><br>
+<em>Co-Founder @ ObjectRocket</em><br></p>
 </section>
   </div>
   <div class="slide hidden" id="slide-2">
@@ -500,8 +503,9 @@ pre .xml .cdata {
 <li>Oracle, MySQL, PostgreSQL, MongoDB, Apache Spark</li>
 </ul>
 <ul>
-<li>Obsessed</li>
+<li>Obsessed: <a href="http://www.kennygorman.com"><a href="http://www.kennygorman.com">http://www.kennygorman.com</a></a></li>
 </ul>
+<p><img src="badge_small.jpg" alt="pic"></p>
 </section>
   </div>
   <div class="slide hidden" id="slide-3">
@@ -539,43 +543,98 @@ pre .xml .cdata {
 </section>
   </div>
   <div class="slide hidden" id="slide-5">
-    <section class="slide-content"><h3 id="example-of-typical-db-schema">Example of typical DB schema</h3>
-<pre><code class="lang-sql"><span class="operator"><span class="keyword">SELECT</span> *
-<span class="keyword">FROM</span> customers c, departments d, customer_departments cd
-<span class="keyword">WHERE</span> c.customer_id = cd.customer_id
-<span class="keyword">AND</span> d.department_id = cd.department_id
-<span class="keyword">AND</span> cd.name = <span class="string">'Engineering'</span></code></pre>
+    <section class="slide-content"><h3 id="example-of-typical-db-schema">Example of typical DB Schema</h3>
+<pre><code class="lang-sql">mysql&gt; desc employees;
++<span class="comment">------------+---------------+------+-----+---------+-------+</span>
+| Field      | Type          | Null | Key | Default | Extra |
++<span class="comment">------------+---------------+------+-----+---------+-------+</span>
+| emp_no     | int(11)       | NO   | PRI | NULL    |       |
+| birth_date | date          | NO   |     | NULL    |       |
+| first_name | varchar(14)   | NO   |     | NULL    |       |
+| last_name  | varchar(16)   | NO   |     | NULL    |       |
+| gender     | enum('M','F') | NO   |     | NULL    |       |
+| hire_date  | date          | NO   |     | NULL    |       |
++<span class="comment">------------+---------------+------+-----+---------+-------+</span>
+mysql&gt; desc dept_emp;
++<span class="comment">-----------+---------+------+-----+---------+-------+</span>
+| Field     | Type    | Null | Key | Default | Extra |
++<span class="comment">-----------+---------+------+-----+---------+-------+</span>
+| emp_no    | int(11) | NO   | PRI | NULL    |       |
+| dept_no   | char(4) | NO   | PRI | NULL    |       |
+| from_date | date    | NO   |     | NULL    |       |
+| to_date   | date    | NO   |     | NULL    |       |
++<span class="comment">-----------+---------+------+-----+---------+-------+</span>
+mysql&gt; desc departments;
++<span class="comment">-----------+-------------+------+-----+---------+-------+</span>
+| Field     | Type        | Null | Key | Default | Extra |
++<span class="comment">-----------+-------------+------+-----+---------+-------+</span>
+| dept_no   | char(4)     | NO   | PRI | NULL    |       |
+| dept_name | varchar(40) | NO   | UNI | NULL    |       |
++<span class="comment">-----------+-------------+------+-----+---------+-------+</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-6">
+    <section class="slide-content"><h3 id="example-of-typical-db-queries">Example of typical DB queries</h3>
+<pre><code class="lang-sql"> <span class="operator"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees e, departments d, dept_emp de
+ <span class="keyword">WHERE</span> e.emp_no = de.emp_no <span class="keyword">AND</span> de.dept_no = d.dept_no
+ <span class="keyword">AND</span> d.dept_name = <span class="string">'Development'</span>;</span></code></pre>
 <ul>
 <li>Yeah, Edgar would be stoked</li>
 <li>Holy shit this sux, no-one does this in the real world</li>
 </ul>
 <pre><code class="lang-sql"><span class="operator"><span class="keyword">SELECT</span> *
-<span class="keyword">FROM</span> customers
-<span class="keyword">WHERE</span> department_name <span class="keyword">IN</span> (<span class="string">'Engineering'</span>);</span></code></pre>
+<span class="keyword">FROM</span> employees
+<span class="keyword">WHERE</span> department_name <span class="keyword">IN</span> (<span class="string">'d005'</span>);</span></code></pre>
 <ul>
-<li>Yeah, like that</li>
-</ul>
-</section>
-  </div>
-  <div class="slide hidden" id="slide-6">
-    <section class="slide-content"><h3 id="now-let-s-look-at-it-in-mongodb">Now let&#39;s look at it in MongoDB</h3>
-<pre><code class="lang-json">{
-    "<span class="attribute">customer_id</span>": <span class="value"><span class="number">100</span></span>,
-    "<span class="attribute">customer_name</span>": <span class="value"><span class="string">"John"</span></span>,
-    "<span class="attribute">department</span>": <span class="value"><span class="string">"Engineering"</span>
-}</span>
-{
-    "<span class="attribute">customer_id</span>": <span class="value"><span class="number">101</span></span>,
-    "<span class="attribute">customer_name</span>": <span class="value"><span class="string">"Hilary"</span></span>,
-    "<span class="attribute">departments</span>": <span class="value">[<span class="string">"Marketing"</span>, <span class="string">"Engineering"</span>, <span class="string">"Sales"</span>]
-}</span></code></pre>
-<ul>
-<li>Are you freaking out?</li>
+<li>Yeah, like that, because webscale</li>
 </ul>
 </section>
   </div>
   <div class="slide hidden" id="slide-7">
-    <section class="slide-content"><h2 id="tables-indexing-etc">Tables, Indexing, etc</h2>
+    <section class="slide-content"><h3 id="sample-schema-in-mongodb">Sample Schema in MongoDB</h3>
+<pre><code>
+</code></pre>
+<ul>
+<li>See what I did there?</li>
+</ul>
+<pre><code class="lang-javascript">&gt; db.employees.findOne()</code></pre>
+<pre><code class="lang-json">{
+    "<span class="attribute">_id</span>" : <span class="value"><span class="number">496277</span></span>,
+    "<span class="attribute">birth_date</span>" : <span class="value">ISODate(<span class="string">"2015-09-04T17:59:48.911Z"</span>)</span>,
+    "<span class="attribute">first_name</span>" : <span class="value"><span class="string">"Georgi"</span></span>,
+    "<span class="attribute">last_name</span>" : <span class="value"><span class="string">"Facello"</span></span>,
+    "<span class="attribute">gender</span>" : <span class="value"><span class="string">"M"</span></span>,
+    "<span class="attribute">hire_date</span>" : <span class="value">ISODate(<span class="string">"2015-09-04T17:59:48.911Z"</span>)</span>,
+    "<span class="attribute">Departments</span>" : <span class="value">[
+        <span class="string">"Marketing"</span>,
+        <span class="string">"Development"</span>
+    ]
+}</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-8">
+    <section class="slide-content"><h3 id="mongodb-presents-new-options-new-challenges-">MongoDB presents new options, new challenges..</h3>
+<pre><code class="lang-json">{
+    "<span class="attribute">_id</span>": <span class="value"><span class="number">100</span></span>,
+    "<span class="attribute">first_name</span>": <span class="value"><span class="string">"John"</span></span>,
+    "<span class="attribute">department</span>": <span class="value"><span class="string">"Engineering"</span>
+}</span>
+{
+    "<span class="attribute">_id</span>": <span class="value"><span class="number">101</span></span>,
+    "<span class="attribute">first_name</span>": <span class="value"><span class="string">"Hilary"</span></span>,
+    "<span class="attribute">Departments</span>": <span class="value">[<span class="string">"Marketing"</span>, <span class="string">"Engineering"</span>, <span class="string">"Sales"</span>]
+}</span></code></pre>
+<ul>
+<li><p>Are you freaking out?</p>
+</li>
+<li><p>$exists, $lt, $gt, $type, $elemMatch, $size</p>
+</li>
+<li>Btree indexes, partial indexes, TTL indexes</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-9">
+    <section class="slide-content"><h3 id="tables-indexing-etc">Tables, Indexing, etc</h3>
 <ul>
 <li>adding indexes background</li>
 <li>adding columns vs MongoDB</li>
@@ -583,35 +642,138 @@ pre .xml .cdata {
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-8">
-    <section class="slide-content"><h2 id="statement-tuning">Statement Tuning</h2>
+  <div class="slide hidden" id="slide-10">
+    <section class="slide-content"><h3 id="statement-tuning">Statement Tuning</h3>
 <ul>
 <li>Similar to MySQL, look for bad statements</li>
 <li>Enter profiler</li>
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-9">
-    <section class="slide-content"><h2 id="mongodb-profiler">MongoDB profiler</h2>
-</section>
-  </div>
-  <div class="slide hidden" id="slide-10">
-    <section class="slide-content"><h2 id="query-plans">Query plans</h2>
-</section>
-  </div>
   <div class="slide hidden" id="slide-11">
-    <section class="slide-content"><h2 id="instance-tuning">Instance Tuning</h2>
-</section>
-  </div>
-  <div class="slide hidden" id="slide-12">
-    <section class="slide-content"><h2 id="random">Random</h2>
+    <section class="slide-content"><h3 id="mongodb-profiler">MongoDB profiler</h3>
 <ul>
-<li>If sharded, look for balancer jacking you</li>
-<li>TTL indexes</li>
+<li>Runs in the background capturing what has been run on the DB.</li>
+<li>Doesn&#39;t capture the plan it used to execute</li>
+<li>Does capture the time it spent running.</li>
+</ul>
+<p>Turn it on: <code>db.setProfilingLevel(level, slowms)</code></p>
+<ul>
+<li>level 1 uses slowms</li>
+<li>level 2 is everything</li>
+<li>turn it on, leave it on (!)</li>
 </ul>
 </section>
   </div>
+  <div class="slide hidden" id="slide-12">
+    <section class="slide-content"><h3 id="profiler-output">Profiler output</h3>
+<pre><code class="lang-javascript">{
+  <span class="string">"ts"</span> : ISODate(<span class="string">"2012-09-14T16:34:00.010Z"</span>),   <span class="comment">// date it occurred</span>
+    <span class="string">"op"</span> : <span class="string">"query"</span>,                            <span class="comment">// the operation type</span>
+    <span class="string">"ns"</span> : <span class="string">"game.players"</span>,                     <span class="comment">// the db and collection</span>
+    <span class="string">"query"</span> : { <span class="string">"total_games"</span> : <span class="number">1000</span> },        <span class="comment">// query document</span>
+    <span class="string">"ntoreturn"</span> : <span class="number">0</span>,                           <span class="comment">// # docs returned with limit()</span>
+    <span class="string">"ntoskip"</span> : <span class="number">0</span>,                             <span class="comment">// # of docs to skip()</span>
+    <span class="string">"nscanned"</span> : <span class="number">959967</span>,                       <span class="comment">// number of docs scanned</span>
+    <span class="string">"keyUpdates"</span> : <span class="number">0</span>,                          <span class="comment">// updates of secondary indexes</span>
+    <span class="string">"numYield"</span> : <span class="number">1</span>,                            <span class="comment">// # of times yields took place</span>
+    <span class="string">"lockStats"</span> : { ... },                     <span class="comment">// subdoc of lock stats</span>
+    <span class="string">"nreturned"</span> : <span class="number">0</span>,                           <span class="comment">// # docs actually returned</span>
+    <span class="string">"responseLength"</span> : <span class="number">20</span>,                     <span class="comment">// size of doc</span>
+    <span class="string">"millis"</span> : <span class="number">859</span>,                            <span class="comment">// how long it took</span>
+    <span class="string">"client"</span> : <span class="string">"127.0.0.1"</span>,                    <span class="comment">// client asked for it</span>
+    <span class="string">"user"</span> : <span class="string">""</span>                                <span class="comment">// the user asking for it</span>
+}</code></pre>
+</section>
+  </div>
   <div class="slide hidden" id="slide-13">
+    <section class="slide-content"><h3 id="explain-the-output">Explain the output</h3>
+<pre><code class="lang-javascript">db.players.find({ <span class="string">"total_games"</span> : <span class="number">1000</span> }).explain();
+{
+    <span class="string">"cursor"</span> : <span class="string">"BtreeCursor total_games-1"</span>,                    <span class="comment">// Btree</span>
+    <span class="string">"isMultiKey"</span> : <span class="literal">false</span>,
+    <span class="string">"n"</span> : <span class="number">1</span>,
+    <span class="string">"nscannedObjects"</span> : <span class="number">1</span>,
+    <span class="string">"nscanned"</span> : <span class="number">1</span>,
+    <span class="string">"nscannedObjectsAllPlans"</span> : <span class="number">1</span>,
+    <span class="string">"nscannedAllPlans"</span> : <span class="number">1</span>,
+    <span class="string">"scanAndOrder"</span> : <span class="literal">false</span>,
+    <span class="string">"indexOnly"</span> : <span class="literal">false</span>,                                       <span class="comment">// hint hint</span>
+    <span class="string">"nYields"</span> : <span class="number">0</span>,
+    <span class="string">"nChunkSkips"</span> : <span class="number">0</span>,
+    <span class="string">"millis"</span> : <span class="number">0</span>,
+    <span class="string">"indexBounds"</span> : { <span class="string">"total_games"</span> : [[<span class="number">1</span>,<span class="number">1</span>]]},                <span class="comment">// w00t</span>
+    ...
+}</code></pre>
+<ul>
+<li>Similar to <code>SQL EXPLAIN FOR SELCT * FROM ...</code></li>
+<li>Pt-Visual-Explain is better.</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-14">
+    <section class="slide-content"><h3 id="query-plans">Query plans</h3>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-15">
+    <section class="slide-content"><h3 id="locks">Locks</h3>
+<ul>
+<li>F these locks.</li>
+</ul>
+<blockquote>
+<p>Locks are “writer greedy,” which means write locks have preference over reads. When both a read and write are waiting for a lock, MongoDB grants the lock to the write.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Lock Granularity</th>
+<th>Pissed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.2</td>
+<td>Database, adaptive</td>
+<td>Pissed</td>
+</tr>
+<tr>
+<td>2.4</td>
+<td>Collection</td>
+<td>Pissed</td>
+</tr>
+<tr>
+<td>2.6</td>
+<td>Collection</td>
+<td>Pissed</td>
+</tr>
+<tr>
+<td>3.0</td>
+<td>Document</td>
+<td>Still pissed, getting over it</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>WiredTiger should help (!)</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-16">
+    <section class="slide-content"><h3 id="instance-tuning">Instance Tuning</h3>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-17">
+    <section class="slide-content"><h3 id="random-gotcha-s">Random Gotcha&#39;s</h3>
+<ul>
+<li>If sharded, check balancer</li>
+<li>TTL indexes</li>
+<li>Can&#39;t authoritatively kill queries, just ask nicely</li>
+</ul>
+<pre><code class="lang-json">&gt;db.killOp(444493);</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-18">
     <section class="slide-content"><h3 id="value-of-testing-ebay-paypal">Value of testing; eBay/Paypal</h3>
 <ul>
 <li>Abstract insert test</li>
@@ -632,7 +794,7 @@ pre .xml .cdata {
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-14">
+  <div class="slide hidden" id="slide-19">
     <section class="slide-content"><div class="author">
   <h1 class="name">Kenny Gorman</h1>
     <h3 class="twitter">
@@ -640,6 +802,9 @@ pre .xml .cdata {
     </h3>
     <h3 class="url">
       <a href="http://kennygorman.com">http://kennygorman.com</a>
+    </h3>
+    <h3 class="email">
+      <a href="mailto:kenny.gorman@rackspace.com">kenny.gorman@rackspace.com</a>
     </h3>
 </div>
 </section>
