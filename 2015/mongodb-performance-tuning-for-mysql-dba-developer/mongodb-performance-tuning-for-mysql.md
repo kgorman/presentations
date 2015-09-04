@@ -102,7 +102,50 @@ WHERE department_name IN ('Engineering');
 ```
 
 - Are you freaking out?
-- Do you want to become a gardner or health insurance salesman?
+
+--
+
+## Tables, Indexing, etc
+
+- adding indexes background
+- adding columns vs MongoDB
+- phantom reads
+
+
+--
+
+## Statement Tuning
+
+- Similar to MySQL, look for bad statements
+- Enter profiler
+
+
+--
+
+## MongoDB profiler
+
+
+
+
+
+
+--
+
+## Query plans
+
+
+
+--
+
+## Instance Tuning
+
+
+--
+
+## Random
+
+- If sharded, look for balancer jacking you
+- TTL indexes
 
 
 --
