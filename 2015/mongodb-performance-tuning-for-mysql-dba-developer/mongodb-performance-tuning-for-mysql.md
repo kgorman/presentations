@@ -276,6 +276,21 @@ db.players.find({ "total_games" : 1000 }).explain();
 
 ### Query plans
 
+- Caches the plans for those query shapes that can have more than one viable plan
+- Occasionally reevaluates query plans
+- Index filters (2.6+)
+
+```javascript
+PlanCache.listQueryShapes();
+```
+
+- knobs file (3.0+)
+
+```javascript
+mongod --setParameter internalQueryExecYieldIterations=1000
+```
+
+[query_knobs.h](https://github.com/mongodb/mongo/blob/master/src/mongo/db/query/query_knobs.h#L99.)
 
 
 --
