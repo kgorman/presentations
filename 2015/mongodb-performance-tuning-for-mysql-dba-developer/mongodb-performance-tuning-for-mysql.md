@@ -21,16 +21,11 @@ theme: theme
 
 * Database Engineer, Developer, DBA, Architect, Founder
 
-
-
 * Oracle, MySQL, PostgreSQL, MongoDB, Apache Spark
-
-
 
 * Obsessed: [http://www.kennygorman.com](http://www.kennygorman.com)
 
-
-![pic](badge_small.jpg)
+* MongoDB 1.2. Wrote original mongostat tool
 
 --
 ### MongoDB Performance Tuning at a glance
@@ -60,7 +55,7 @@ theme: theme
 
 >A first normal form relational database is similar, but not equal to MongoDB's implementation of a document database.
 
-* Let's talk datatypes
+* New datatypes
 
 --
 
@@ -164,17 +159,43 @@ WHERE department_name IN ('d005');
 ```
 
 - Are you freaking out?
+- Someone is going to take some abstract object and call save() on it, and your world is going to end, serious, true story.
 
-- $exists, $lt, $gt, $type, $elemMatch, $size
-- Btree indexes, partial indexes, TTL indexes
+
+--
+### Example: SFLY
+
+- User account that owns images, images organized in folders. Goal is to minimize I/O.
+
+Model A:
+
+```json
+    {"_id": 9999, "folder_id": 33, "photo_id": 10}
+    {"_id": 9998, "folder_id": 122, "photo_id": 343}
+    {"_id": 3331, "folder_id": 122, "photo_id": 321}
+```
+
+Model B:
+
+```json
+    {"_id": 9999, "photo_id": 10, "path": "vacation-london" }
+    {"_id": 9998, "photo_id": 343, "path": "vacation-cabo"}
+    {"_id": 3331, "photo_id": 321, "path": "vacation-cabo"}
+```
+
+```javascript
+db.images.find({"path": / ^vacation / })        // all vacations
+db.images.find({"path": / ^vacation-cabo /})    // just cabo
+```
+
 
 --
 
-### Tables, Indexing, etc
+### Bottom line...
 
-- adding indexes background
+- Schema design still matters
 - adding columns vs MongoDB
-- phantom reads
+- phantom reads, isolation, and transactions
 
 
 --
@@ -263,16 +284,25 @@ db.players.find({ "total_games" : 1000 }).explain();
 
 - F these locks.
 
+| Version | Lock Granularity          | I am |
+| ------------- | ----------- | -------- |
+| 1.8   | Process | Pissed |
+| 2.2      | Database | Pissed |
+| 2.4     | Database     | Pissed |
+| 2.6   | Database | Pissed |
+| 3.0   | Collection | Still pissed, getting over it |
+| 3.0 WT | Document | Whew |
+
+--
+### Locks, Con't
+
+- [Readers-writer lock](https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock)
+
 >Locks are “writer greedy,” which means write locks have preference over reads. When both a read and write are waiting for a lock, MongoDB grants the lock to the write.
 
-| Version | Lock Granularity          | Pissed |
-| ------------- | ----------- | -------- |
-| 2.2      | Database, adaptive | Pissed |
-| 2.4     | Collection     | Pissed |
-| 2.6   | Collection | Pissed |
-| 3.0   | Document | Still pissed, getting over it |
-
+- Locks are adaptive.
 - WiredTiger should help (!)
+- Not really a notion of Shared or Exclusive locks like Inno
 
 --
 

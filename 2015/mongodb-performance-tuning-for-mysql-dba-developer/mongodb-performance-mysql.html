@@ -497,15 +497,15 @@ pre .xml .cdata {
   <div class="slide hidden" id="slide-2">
     <section class="slide-content"><h3 id="a-small-bit-of-my-background">A small bit of my background</h3>
 <ul>
-<li>Database Engineer, Developer, DBA, Architect, Founder</li>
+<li><p>Database Engineer, Developer, DBA, Architect, Founder</p>
+</li>
+<li><p>Oracle, MySQL, PostgreSQL, MongoDB, Apache Spark</p>
+</li>
+<li><p>Obsessed: <a href="http://www.kennygorman.com"><a href="http://www.kennygorman.com">http://www.kennygorman.com</a></a></p>
+</li>
+<li><p>MongoDB 1.2. Wrote original mongostat tool</p>
+</li>
 </ul>
-<ul>
-<li>Oracle, MySQL, PostgreSQL, MongoDB, Apache Spark</li>
-</ul>
-<ul>
-<li>Obsessed: <a href="http://www.kennygorman.com"><a href="http://www.kennygorman.com">http://www.kennygorman.com</a></a></li>
-</ul>
-<p><img src="badge_small.jpg" alt="pic"></p>
 </section>
   </div>
   <div class="slide hidden" id="slide-3">
@@ -538,7 +538,7 @@ pre .xml .cdata {
 <p>A first normal form relational database is similar, but not equal to MongoDB&#39;s implementation of a document database.</p>
 </blockquote>
 <ul>
-<li>Let&#39;s talk datatypes</li>
+<li>New datatypes</li>
 </ul>
 </section>
   </div>
@@ -625,24 +625,38 @@ mysql&gt; desc departments;
     "<span class="attribute">Departments</span>": <span class="value">[<span class="string">"Marketing"</span>, <span class="string">"Engineering"</span>, <span class="string">"Sales"</span>]
 }</span></code></pre>
 <ul>
-<li><p>Are you freaking out?</p>
-</li>
-<li><p>$exists, $lt, $gt, $type, $elemMatch, $size</p>
-</li>
-<li>Btree indexes, partial indexes, TTL indexes</li>
+<li>Are you freaking out?</li>
+<li>Someone is going to take some abstract object and call save() on it, and your world is going to end, serious, true story.</li>
 </ul>
 </section>
   </div>
   <div class="slide hidden" id="slide-9">
-    <section class="slide-content"><h3 id="tables-indexing-etc">Tables, Indexing, etc</h3>
+    <section class="slide-content"><h3 id="example-sfly">Example: SFLY</h3>
 <ul>
-<li>adding indexes background</li>
-<li>adding columns vs MongoDB</li>
-<li>phantom reads</li>
+<li>User account that owns images, images organized in folders. Goal is to minimize I/O.</li>
 </ul>
+<p>Model A:</p>
+<pre><code class="lang-json">    {"<span class="attribute">_id</span>": <span class="value"><span class="number">9999</span></span>, "<span class="attribute">folder_id</span>": <span class="value"><span class="number">33</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">10</span>}</span>
+    {"<span class="attribute">_id</span>": <span class="value"><span class="number">9998</span></span>, "<span class="attribute">folder_id</span>": <span class="value"><span class="number">122</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">343</span>}</span>
+    {"<span class="attribute">_id</span>": <span class="value"><span class="number">3331</span></span>, "<span class="attribute">folder_id</span>": <span class="value"><span class="number">122</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">321</span>}</span></code></pre>
+<p>Model B:</p>
+<pre><code class="lang-json">    {"<span class="attribute">_id</span>": <span class="value"><span class="number">9999</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">10</span></span>, "<span class="attribute">path</span>": <span class="value"><span class="string">"vacation-london"</span> }</span>
+    {"<span class="attribute">_id</span>": <span class="value"><span class="number">9998</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">343</span></span>, "<span class="attribute">path</span>": <span class="value"><span class="string">"vacation-cabo"</span>}</span>
+    {"<span class="attribute">_id</span>": <span class="value"><span class="number">3331</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">321</span></span>, "<span class="attribute">path</span>": <span class="value"><span class="string">"vacation-cabo"</span>}</span></code></pre>
+<pre><code class="lang-javascript">db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vacation /</span> })        <span class="comment">// all vacations</span>
+db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vacation-cabo /</span>})    <span class="comment">// just cabo</span></code></pre>
 </section>
   </div>
   <div class="slide hidden" id="slide-10">
+    <section class="slide-content"><h3 id="bottom-line-">Bottom line...</h3>
+<ul>
+<li>Schema design still matters</li>
+<li>adding columns vs MongoDB</li>
+<li>phantom reads, isolation, and transactions</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-11">
     <section class="slide-content"><h3 id="statement-tuning">Statement Tuning</h3>
 <ul>
 <li>Similar to MySQL, look for bad statements</li>
@@ -650,7 +664,7 @@ mysql&gt; desc departments;
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-11">
+  <div class="slide hidden" id="slide-12">
     <section class="slide-content"><h3 id="mongodb-profiler">MongoDB profiler</h3>
 <ul>
 <li>Runs in the background capturing what has been run on the DB.</li>
@@ -665,7 +679,7 @@ mysql&gt; desc departments;
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-12">
+  <div class="slide hidden" id="slide-13">
     <section class="slide-content"><h3 id="profiler-output">Profiler output</h3>
 <pre><code class="lang-javascript">{
   <span class="string">"ts"</span> : ISODate(<span class="string">"2012-09-14T16:34:00.010Z"</span>),   <span class="comment">// date it occurred</span>
@@ -686,7 +700,7 @@ mysql&gt; desc departments;
 }</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-13">
+  <div class="slide hidden" id="slide-14">
     <section class="slide-content"><h3 id="explain-the-output">Explain the output</h3>
 <pre><code class="lang-javascript">db.players.find({ <span class="string">"total_games"</span> : <span class="number">1000</span> }).explain();
 {
@@ -711,59 +725,78 @@ mysql&gt; desc departments;
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-14">
+  <div class="slide hidden" id="slide-15">
     <section class="slide-content"><h3 id="query-plans">Query plans</h3>
 </section>
   </div>
-  <div class="slide hidden" id="slide-15">
+  <div class="slide hidden" id="slide-16">
     <section class="slide-content"><h3 id="locks">Locks</h3>
 <ul>
 <li>F these locks.</li>
 </ul>
-<blockquote>
-<p>Locks are “writer greedy,” which means write locks have preference over reads. When both a read and write are waiting for a lock, MongoDB grants the lock to the write.</p>
-</blockquote>
 <table>
 <thead>
 <tr>
 <th>Version</th>
 <th>Lock Granularity</th>
-<th>Pissed</th>
+<th>I am</th>
 </tr>
 </thead>
 <tbody>
 <tr>
+<td>1.8</td>
+<td>Process</td>
+<td>Pissed</td>
+</tr>
+<tr>
 <td>2.2</td>
-<td>Database, adaptive</td>
+<td>Database</td>
 <td>Pissed</td>
 </tr>
 <tr>
 <td>2.4</td>
-<td>Collection</td>
+<td>Database</td>
 <td>Pissed</td>
 </tr>
 <tr>
 <td>2.6</td>
-<td>Collection</td>
+<td>Database</td>
 <td>Pissed</td>
 </tr>
 <tr>
 <td>3.0</td>
-<td>Document</td>
+<td>Collection</td>
 <td>Still pissed, getting over it</td>
+</tr>
+<tr>
+<td>3.0 WT</td>
+<td>Document</td>
+<td>Whew</td>
 </tr>
 </tbody>
 </table>
-<ul>
-<li>WiredTiger should help (!)</li>
-</ul>
-</section>
-  </div>
-  <div class="slide hidden" id="slide-16">
-    <section class="slide-content"><h3 id="instance-tuning">Instance Tuning</h3>
 </section>
   </div>
   <div class="slide hidden" id="slide-17">
+    <section class="slide-content"><h3 id="locks-con-t">Locks, Con&#39;t</h3>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock">Readers-writer lock</a></li>
+</ul>
+<blockquote>
+<p>Locks are “writer greedy,” which means write locks have preference over reads. When both a read and write are waiting for a lock, MongoDB grants the lock to the write.</p>
+</blockquote>
+<ul>
+<li>Locks are adaptive.</li>
+<li>WiredTiger should help (!)</li>
+<li>Not really a notion of Shared or Exclusive locks like Inno</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-18">
+    <section class="slide-content"><h3 id="instance-tuning">Instance Tuning</h3>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-19">
     <section class="slide-content"><h3 id="random-gotcha-s">Random Gotcha&#39;s</h3>
 <ul>
 <li>If sharded, check balancer</li>
@@ -773,7 +806,7 @@ mysql&gt; desc departments;
 <pre><code class="lang-json">&gt;db.killOp(444493);</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-18">
+  <div class="slide hidden" id="slide-20">
     <section class="slide-content"><h3 id="value-of-testing-ebay-paypal">Value of testing; eBay/Paypal</h3>
 <ul>
 <li>Abstract insert test</li>
@@ -794,7 +827,7 @@ mysql&gt; desc departments;
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-19">
+  <div class="slide hidden" id="slide-21">
     <section class="slide-content"><div class="author">
   <h1 class="name">Kenny Gorman</h1>
     <h3 class="twitter">
