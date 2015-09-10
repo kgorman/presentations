@@ -777,6 +777,17 @@ mysql&gt; desc departments;
   </div>
   <div class="slide hidden" id="slide-16">
     <section class="slide-content"><h3 id="query-plans">Query plans</h3>
+<ul>
+<li>Caches the plans for those query shapes that can have more than one viable plan</li>
+<li>Occasionally reevaluates query plans</li>
+<li>Index filters (2.6+)</li>
+</ul>
+<pre><code class="lang-javascript">PlanCache.listQueryShapes();</code></pre>
+<ul>
+<li>knobs file (3.0+)</li>
+</ul>
+<pre><code class="lang-javascript">mongod --setParameter internalQueryExecYieldIterations=<span class="number">1000</span></code></pre>
+<p><a href="https://github.com/mongodb/mongo/blob/master/src/mongo/db/query/query_knobs.h#L99.">query_knobs.h</a></p>
 </section>
   </div>
   <div class="slide hidden" id="slide-17">
