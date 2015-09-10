@@ -631,32 +631,82 @@ mysql&gt; desc departments;
 </section>
   </div>
   <div class="slide hidden" id="slide-9">
-    <section class="slide-content"><h3 id="example-sfly">Example: SFLY</h3>
+    <section class="slide-content"><h3 id="example-tags">Example: Tags</h3>
 <ul>
-<li>User account that owns images, images organized in folders. Goal is to minimize I/O.</li>
+<li>A blog post example using an array of tags possible per post</li>
 </ul>
-<p>Model A:</p>
-<pre><code class="lang-json">    {"<span class="attribute">_id</span>": <span class="value"><span class="number">9999</span></span>, "<span class="attribute">folder_id</span>": <span class="value"><span class="number">33</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">10</span>}</span>
-    {"<span class="attribute">_id</span>": <span class="value"><span class="number">9998</span></span>, "<span class="attribute">folder_id</span>": <span class="value"><span class="number">122</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">343</span>}</span>
-    {"<span class="attribute">_id</span>": <span class="value"><span class="number">3331</span></span>, "<span class="attribute">folder_id</span>": <span class="value"><span class="number">122</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">321</span>}</span></code></pre>
-<p>Model B:</p>
-<pre><code class="lang-json">    {"<span class="attribute">_id</span>": <span class="value"><span class="number">9999</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">10</span></span>, "<span class="attribute">path</span>": <span class="value"><span class="string">"vacation-london"</span> }</span>
-    {"<span class="attribute">_id</span>": <span class="value"><span class="number">9998</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">343</span></span>, "<span class="attribute">path</span>": <span class="value"><span class="string">"vacation-cabo"</span>}</span>
-    {"<span class="attribute">_id</span>": <span class="value"><span class="number">3331</span></span>, "<span class="attribute">photo_id</span>": <span class="value"><span class="number">321</span></span>, "<span class="attribute">path</span>": <span class="value"><span class="string">"vacation-cabo"</span>}</span></code></pre>
-<pre><code class="lang-javascript">db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vacation /</span> })        <span class="comment">// all vacations</span>
-db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vacation-cabo /</span>})    <span class="comment">// just cabo</span></code></pre>
+<p>Model A (SQL):</p>
+<pre><code class="lang-sql"><span class="operator"><span class="keyword">SELECT</span> posts.post_text, tags.tag_text
+<span class="keyword">FROM</span> posts, tags
+<span class="keyword">WHERE</span> posts.post_id = tags.post_id
+<span class="keyword">AND</span> tags.tag_text = <span class="string">'Camping'</span>;</span>
++<span class="comment">--------------------------+----------+</span>
+| post_text                | tag_text |
++<span class="comment">--------------------------+----------+</span>
+| this is my post, its rad | Camping  |
++<span class="comment">--------------------------+----------+</span>
+
++<span class="comment">----+-------------+-------+------+---------------+--------------+---------+--------------------+------+-------------+</span>
+| id | select_type | table | type | possible_keys | key          | key_len | ref                | rows | Extra       |
++<span class="comment">----+-------------+-------+------+---------------+--------------+---------+--------------------+------+-------------+</span>
+|  1 | SIMPLE      | posts | ALL  | PRIMARY       | NULL         | NULL    | NULL               |    1 | NULL        |
+|  1 | SIMPLE      | tags  | ref  | tags_posts_i  | tags_posts_i | 5       | blog.posts.post_id |    1 | Using where |
++<span class="comment">----+-------------+-------+------+---------------+--------------+---------+--------------------+------+-------------+</span></code></pre>
+<ul>
+<li>4 I/O&#39;s</li>
+</ul>
 </section>
   </div>
   <div class="slide hidden" id="slide-10">
-    <section class="slide-content"><h3 id="bottom-line-">Bottom line...</h3>
+    <section class="slide-content"><h3 id="example-tags-con-t">Example: Tags Con&#39;t</h3>
+<p>Model B (MongoDB):</p>
+<pre><code class="lang-javascript">&gt; db.posts.find({<span class="string">'tags'</span>:<span class="string">'camping'</span>}).pretty()
+{
+    <span class="string">"_id"</span> : ObjectId(<span class="string">"55f1dcf328f410f7e9cea796"</span>),
+    <span class="string">"id"</span> : <span class="number">1</span>,
+    <span class="string">"blog_text"</span> : <span class="string">"this is my post, its rad"</span>,
+    <span class="string">"tags"</span> : [
+        <span class="string">"camping"</span>,
+        <span class="string">"aliens"</span>
+    ]
+}
+&gt; db.posts.find({<span class="string">'tags'</span>:<span class="string">'camping'</span>}).explain()
+{
+    <span class="string">"cursor"</span> : <span class="string">"BtreeCursor tags_-1"</span>,
+    <span class="string">"isMultiKey"</span> : <span class="literal">true</span>,
+    <span class="string">"n"</span> : <span class="number">1</span>,
+    ...
+    <span class="string">"scanAndOrder"</span> : <span class="literal">false</span>,
+    <span class="string">"indexOnly"</span> : <span class="literal">false</span>,
+    <span class="string">"nYields"</span> : <span class="number">0</span>,
+    <span class="string">"nChunkSkips"</span> : <span class="number">0</span>,
+    <span class="string">"millis"</span> : <span class="number">0</span>,
+    <span class="string">"indexBounds"</span> : {
+        <span class="string">"tags"</span> : [
+            [
+                <span class="string">"camping"</span>,
+                <span class="string">"camping"</span>
+            ]
+        ]
+    },
+    <span class="string">"server"</span> : <span class="string">"Kenneths-MacBook-Air.local:27017"</span>,
+    <span class="string">"filterSet"</span> : <span class="literal">false</span>
+}</code></pre>
 <ul>
-<li>Schema design still matters</li>
-<li>adding columns vs MongoDB</li>
-<li>phantom reads, isolation, and transactions</li>
+<li>2 I/O&#39;s, dense</li>
 </ul>
 </section>
   </div>
   <div class="slide hidden" id="slide-11">
+    <section class="slide-content"><h3 id="bottom-line-">Bottom line...</h3>
+<ul>
+<li>Schema design still matters</li>
+<li>phantom reads, isolation, and transactions</li>
+<li>Understand the query path/shape</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-12">
     <section class="slide-content"><h3 id="statement-tuning">Statement Tuning</h3>
 <ul>
 <li>Similar to MySQL, look for bad statements</li>
@@ -664,7 +714,7 @@ db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vaca
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-12">
+  <div class="slide hidden" id="slide-13">
     <section class="slide-content"><h3 id="mongodb-profiler">MongoDB profiler</h3>
 <ul>
 <li>Runs in the background capturing what has been run on the DB.</li>
@@ -679,7 +729,7 @@ db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vaca
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-13">
+  <div class="slide hidden" id="slide-14">
     <section class="slide-content"><h3 id="profiler-output">Profiler output</h3>
 <pre><code class="lang-javascript">{
   <span class="string">"ts"</span> : ISODate(<span class="string">"2012-09-14T16:34:00.010Z"</span>),   <span class="comment">// date it occurred</span>
@@ -700,7 +750,7 @@ db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vaca
 }</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-14">
+  <div class="slide hidden" id="slide-15">
     <section class="slide-content"><h3 id="explain-the-output">Explain the output</h3>
 <pre><code class="lang-javascript">db.players.find({ <span class="string">"total_games"</span> : <span class="number">1000</span> }).explain();
 {
@@ -725,11 +775,11 @@ db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vaca
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-15">
+  <div class="slide hidden" id="slide-16">
     <section class="slide-content"><h3 id="query-plans">Query plans</h3>
 </section>
   </div>
-  <div class="slide hidden" id="slide-16">
+  <div class="slide hidden" id="slide-17">
     <section class="slide-content"><h3 id="locks">Locks</h3>
 <ul>
 <li>F these locks.</li>
@@ -777,7 +827,7 @@ db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vaca
 </table>
 </section>
   </div>
-  <div class="slide hidden" id="slide-17">
+  <div class="slide hidden" id="slide-18">
     <section class="slide-content"><h3 id="locks-con-t">Locks, Con&#39;t</h3>
 <ul>
 <li><a href="https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock">Readers-writer lock</a></li>
@@ -792,11 +842,11 @@ db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vaca
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-18">
+  <div class="slide hidden" id="slide-19">
     <section class="slide-content"><h3 id="instance-tuning">Instance Tuning</h3>
 </section>
   </div>
-  <div class="slide hidden" id="slide-19">
+  <div class="slide hidden" id="slide-20">
     <section class="slide-content"><h3 id="random-gotcha-s">Random Gotcha&#39;s</h3>
 <ul>
 <li>If sharded, check balancer</li>
@@ -806,8 +856,8 @@ db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vaca
 <pre><code class="lang-json">&gt;db.killOp(444493);</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-20">
-    <section class="slide-content"><h3 id="value-of-testing-ebay-paypal">Value of testing; eBay/Paypal</h3>
+  <div class="slide hidden" id="slide-21">
+    <section class="slide-content"><h3 id="value-of-testing-a-large-payments-site">Value of testing; A large payments site</h3>
 <ul>
 <li>Abstract insert test</li>
 </ul>
@@ -827,7 +877,7 @@ db.images.find({<span class="string">"path"</span>: <span class="regexp">/ ^vaca
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-21">
+  <div class="slide hidden" id="slide-22">
     <section class="slide-content"><div class="author">
   <h1 class="name">Kenny Gorman</h1>
     <h3 class="twitter">

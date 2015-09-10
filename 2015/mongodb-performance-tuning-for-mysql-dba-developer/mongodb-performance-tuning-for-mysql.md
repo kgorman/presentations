@@ -163,39 +163,85 @@ WHERE department_name IN ('d005');
 
 
 --
-### Example: SFLY
+### Example: Tags
 
-- User account that owns images, images organized in folders. Goal is to minimize I/O.
+- A blog post example using an array of tags possible per post
 
-Model A:
+Model A (SQL):
 
-```json
-    {"_id": 9999, "folder_id": 33, "photo_id": 10}
-    {"_id": 9998, "folder_id": 122, "photo_id": 343}
-    {"_id": 3331, "folder_id": 122, "photo_id": 321}
+```sql
+SELECT posts.post_text, tags.tag_text
+FROM posts, tags
+WHERE posts.post_id = tags.post_id
+AND tags.tag_text = 'Camping';
++--------------------------+----------+
+| post_text                | tag_text |
++--------------------------+----------+
+| this is my post, its rad | Camping  |
++--------------------------+----------+
+
++----+-------------+-------+------+---------------+--------------+---------+--------------------+------+-------------+
+| id | select_type | table | type | possible_keys | key          | key_len | ref                | rows | Extra       |
++----+-------------+-------+------+---------------+--------------+---------+--------------------+------+-------------+
+|  1 | SIMPLE      | posts | ALL  | PRIMARY       | NULL         | NULL    | NULL               |    1 | NULL        |
+|  1 | SIMPLE      | tags  | ref  | tags_posts_i  | tags_posts_i | 5       | blog.posts.post_id |    1 | Using where |
++----+-------------+-------+------+---------------+--------------+---------+--------------------+------+-------------+
+
+
 ```
 
-Model B:
+- 4 I/O's
 
-```json
-    {"_id": 9999, "photo_id": 10, "path": "vacation-london" }
-    {"_id": 9998, "photo_id": 343, "path": "vacation-cabo"}
-    {"_id": 3331, "photo_id": 321, "path": "vacation-cabo"}
-```
+--
+### Example: Tags Con't
+
+Model B (MongoDB):
 
 ```javascript
-db.images.find({"path": / ^vacation / })        // all vacations
-db.images.find({"path": / ^vacation-cabo /})    // just cabo
+> db.posts.find({'tags':'camping'}).pretty()
+{
+	"_id" : ObjectId("55f1dcf328f410f7e9cea796"),
+	"id" : 1,
+	"blog_text" : "this is my post, its rad",
+	"tags" : [
+		"camping",
+		"aliens"
+	]
+}
+> db.posts.find({'tags':'camping'}).explain()
+{
+	"cursor" : "BtreeCursor tags_-1",
+	"isMultiKey" : true,
+	"n" : 1,
+	...
+	"scanAndOrder" : false,
+	"indexOnly" : false,
+	"nYields" : 0,
+	"nChunkSkips" : 0,
+	"millis" : 0,
+	"indexBounds" : {
+		"tags" : [
+			[
+				"camping",
+				"camping"
+			]
+		]
+	},
+	"server" : "Kenneths-MacBook-Air.local:27017",
+	"filterSet" : false
+}
+
 ```
 
+- 2 I/O's, dense
 
 --
 
 ### Bottom line...
 
 - Schema design still matters
-- adding columns vs MongoDB
 - phantom reads, isolation, and transactions
+- Understand the query path/shape
 
 
 --
@@ -323,7 +369,7 @@ db.players.find({ "total_games" : 1000 }).explain();
 
 
 --
-### Value of testing; eBay/Paypal
+### Value of testing; A large payments site
 
 - Abstract insert test
 
