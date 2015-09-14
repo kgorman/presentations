@@ -533,12 +533,8 @@ pre .xml .cdata {
 </li>
 <li><p>MongoDB is completely denormalized (!)</p>
 </li>
-</ul>
-<blockquote>
-<p>A first normal form relational database is similar, but not equal to MongoDB&#39;s implementation of a document database.</p>
-</blockquote>
-<ul>
-<li>New datatypes</li>
+<li><p>New datatypes</p>
+</li>
 </ul>
 </section>
   </div>
@@ -751,6 +747,35 @@ mysql&gt; desc departments;
 </section>
   </div>
   <div class="slide hidden" id="slide-15">
+    <section class="slide-content"><h3 id="helpful-queries">Helpful queries</h3>
+<pre><code class="lang-javascript"><span class="comment">// top 10 slowest queries</span>
+db.system.profile.find({}).sort({<span class="string">"$millis"</span>:-<span class="number">1</span>}).limit(<span class="number">10</span>);
+
+<span class="comment">// top 10 latest queries</span>
+db.system.profile.find({}).sort({<span class="string">"$natural"</span>:-<span class="number">1</span>}).limi(<span class="number">10</span>);
+
+<span class="comment">// response time by operation type</span>
+db.system.profile.aggregate(
+{ $group : { _id :<span class="string">"$op"</span>, count:{$sum:<span class="number">1</span>}, <span class="string">"max response time"</span>:{$max:<span class="string">"$millis"</span>},
+   <span class="string">"avg response time"</span>:{$avg:<span class="string">"$millis"</span>}
+}});
+
+<span class="comment">// summary moved vs non-moved</span>
+db.system.profile.aggregate(
+ { $group : { _id :<span class="string">"$moved"</span>, count:{$sum:<span class="number">1</span>}, <span class="string">"max response time"</span>:{$max:<span class="string">"$millis"</span>},
+   <span class="string">"avg response time"</span>:{$avg:<span class="string">"$millis"</span>}
+ }},
+ {$sort: { <span class="string">"max response time"</span>:-<span class="number">1</span>} });
+
+<span class="comment">// slowest by namespace</span>
+db.system.profile.aggregate(
+{ $group : { _id :<span class="string">"$ns"</span>, count:{$sum:<span class="number">1</span>}, <span class="string">"max response time"</span>:{$max:<span class="string">"$millis"</span>},
+  <span class="string">"avg response time"</span>:{$avg:<span class="string">"$millis"</span>}  
+}},
+{$sort: { <span class="string">"max response time"</span>:-<span class="number">1</span>} });</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-16">
     <section class="slide-content"><h3 id="explain-the-output">Explain the output</h3>
 <pre><code class="lang-javascript">db.players.find({ <span class="string">"total_games"</span> : <span class="number">1000</span> }).explain();
 {
@@ -775,7 +800,7 @@ mysql&gt; desc departments;
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-16">
+  <div class="slide hidden" id="slide-17">
     <section class="slide-content"><h3 id="query-plans">Query plans</h3>
 <ul>
 <li>Caches the plans for those query shapes that can have more than one viable plan</li>
@@ -784,13 +809,14 @@ mysql&gt; desc departments;
 </ul>
 <pre><code class="lang-javascript">PlanCache.listQueryShapes();</code></pre>
 <ul>
+<li>Must have run the query in order to have a plan for the query</li>
 <li>knobs file (3.0+)</li>
 </ul>
 <pre><code class="lang-javascript">mongod --setParameter internalQueryExecYieldIterations=<span class="number">1000</span></code></pre>
 <p><a href="https://github.com/mongodb/mongo/blob/master/src/mongo/db/query/query_knobs.h#L99.">query_knobs.h</a></p>
 </section>
   </div>
-  <div class="slide hidden" id="slide-17">
+  <div class="slide hidden" id="slide-18">
     <section class="slide-content"><h3 id="locks">Locks</h3>
 <ul>
 <li>F these locks.</li>
@@ -838,7 +864,7 @@ mysql&gt; desc departments;
 </table>
 </section>
   </div>
-  <div class="slide hidden" id="slide-18">
+  <div class="slide hidden" id="slide-19">
     <section class="slide-content"><h3 id="locks-con-t">Locks, Con&#39;t</h3>
 <ul>
 <li><a href="https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock">Readers-writer lock</a></li>
@@ -853,27 +879,42 @@ mysql&gt; desc departments;
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-19">
-    <section class="slide-content"><h3 id="instance-tuning">Instance Tuning</h3>
-</section>
-  </div>
   <div class="slide hidden" id="slide-20">
-    <section class="slide-content"><h3 id="random-gotcha-s">Random Gotcha&#39;s</h3>
+    <section class="slide-content"><h3 id="current-sessions">Current Sessions</h3>
+<pre><code class="lang-javascript">db.currentOp();</code></pre>
 <ul>
-<li>If sharded, check balancer</li>
-<li>TTL indexes</li>
+<li>Important for diagnosing locks</li>
 <li>Can&#39;t authoritatively kill queries, just ask nicely</li>
 </ul>
 <pre><code class="lang-json">&gt;db.killOp(444493);</code></pre>
+<ul>
+<li>long running things suck</li>
+</ul>
+<pre><code class="lang-javascript">db.twitter_feed.find({text: <span class="regexp">/Hillary/</span>}).maxTimeMS(<span class="number">50</span>)
+...
+error: { <span class="string">"$err"</span> : <span class="string">"operation exceeded time limit"</span>, <span class="string">"code"</span> : <span class="number">50</span> }</code></pre>
 </section>
   </div>
   <div class="slide hidden" id="slide-21">
+    <section class="slide-content"><h3 id="instance-tuning">Instance Tuning</h3>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-22">
+    <section class="slide-content"><h3 id="random-stuff">Random stuff</h3>
+<ul>
+<li>If sharded, check balancer</li>
+<li>TTL indexes</li>
+<li>systemLog.component.* log options</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-23">
     <section class="slide-content"><h3 id="value-of-testing-a-large-payments-site">Value of testing; A large payments site</h3>
 <ul>
 <li>Abstract insert test</li>
 </ul>
 <pre><code class="lang-perl"><span class="variable">$sth</span> = <span class="variable">$dbh</span>-&gt;prepare( <span class="string">"
-            INSERT INTO mytable VALUES (?, ?, ?)
+            INSERT INTO the_main_payments_table VALUES (?, ?, ?)
         "</span> );
 <span class="variable">$sth</span>-&gt;bind_param( <span class="number">1</span>, <span class="variable">$randomstuff</span> );
 ...
@@ -888,7 +929,7 @@ mysql&gt; desc departments;
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-22">
+  <div class="slide hidden" id="slide-24">
     <section class="slide-content"><div class="author">
   <h1 class="name">Kenny Gorman</h1>
     <h3 class="twitter">

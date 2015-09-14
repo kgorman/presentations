@@ -53,8 +53,6 @@ theme: theme
 
 * MongoDB is completely denormalized (!)
 
->A first normal form relational database is similar, but not equal to MongoDB's implementation of a document database.
-
 * New datatypes
 
 --
@@ -243,7 +241,6 @@ Model B (MongoDB):
 - phantom reads, isolation, and transactions
 - Understand the query path/shape
 
-
 --
 
 ### Statement Tuning
@@ -291,6 +288,37 @@ Turn it on: ```db.setProfilingLevel(level, slowms)```
 ```
 
 --
+### Helpful queries
+
+```javascript
+// top 10 slowest queries
+db.system.profile.find({}).sort({"$millis":-1}).limit(10);
+
+// top 10 latest queries
+db.system.profile.find({}).sort({"$natural":-1}).limi(10);
+
+// response time by operation type
+db.system.profile.aggregate(
+{ $group : { _id :"$op", count:{$sum:1}, "max response time":{$max:"$millis"},
+   "avg response time":{$avg:"$millis"}
+}});
+
+// summary moved vs non-moved
+db.system.profile.aggregate(
+ { $group : { _id :"$moved", count:{$sum:1}, "max response time":{$max:"$millis"},
+   "avg response time":{$avg:"$millis"}
+ }},
+ {$sort: { "max response time":-1} });
+
+// slowest by namespace
+db.system.profile.aggregate(
+{ $group : { _id :"$ns", count:{$sum:1}, "max response time":{$max:"$millis"},
+  "avg response time":{$avg:"$millis"}  
+}},
+{$sort: { "max response time":-1} });
+```
+
+--
 ### Explain the output
 
 ```javascript
@@ -317,9 +345,7 @@ db.players.find({ "total_games" : 1000 }).explain();
 - Similar to ```SQL EXPLAIN FOR SELCT * FROM ... ```
 - Pt-Visual-Explain is better.
 
-
 --
-
 ### Query plans
 
 - Caches the plans for those query shapes that can have more than one viable plan
@@ -330,6 +356,7 @@ db.players.find({ "total_games" : 1000 }).explain();
 PlanCache.listQueryShapes();
 ```
 
+- Must have run the query in order to have a plan for the query
 - knobs file (3.0+)
 
 ```javascript
@@ -337,7 +364,6 @@ mongod --setParameter internalQueryExecYieldIterations=1000
 ```
 
 [query_knobs.h](https://github.com/mongodb/mongo/blob/master/src/mongo/db/query/query_knobs.h#L99.)
-
 
 --
 
@@ -367,20 +393,40 @@ mongod --setParameter internalQueryExecYieldIterations=1000
 
 --
 
-### Instance Tuning
+### Current Sessions
 
+```javascript
+db.currentOp();
+```
 
---
-
-### Random Gotcha's
-
-- If sharded, check balancer
-- TTL indexes
+- Important for diagnosing locks
 - Can't authoritatively kill queries, just ask nicely
 
 ```json
 >db.killOp(444493);
 ```
+
+- long running things suck
+
+```javascript
+db.twitter_feed.find({text: /Hillary/}).maxTimeMS(50)
+...
+error: { "$err" : "operation exceeded time limit", "code" : 50 }
+```
+
+--
+
+### Instance Tuning
+
+
+--
+
+### Random stuff
+
+- If sharded, check balancer
+- TTL indexes
+- systemLog.component.* log options
+
 
 
 --
@@ -390,7 +436,7 @@ mongod --setParameter internalQueryExecYieldIterations=1000
 
 ```perl
 $sth = $dbh->prepare( "
-            INSERT INTO mytable VALUES (?, ?, ?)
+            INSERT INTO the_main_payments_table VALUES (?, ?, ?)
         " );
 $sth->bind_param( 1, $randomstuff );
 ...
