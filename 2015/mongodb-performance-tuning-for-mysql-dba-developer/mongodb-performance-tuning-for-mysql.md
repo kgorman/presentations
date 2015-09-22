@@ -28,6 +28,14 @@ theme: theme
 * MongoDB 1.2. Wrote original mongostat tool
 
 --
+### Order Matters
+
+- Data Modeling/Schema Design
+- Statement tuning
+- Instance tuning
+- ~~System tuning~~ <-- I only have 50 minutes
+
+--
 ### MongoDB Performance Tuning at a glance
 
 * Not unlike MySQL
@@ -42,18 +50,19 @@ theme: theme
 * Mindset change
 
 
+* Tooling
+
+
 
 --
 
 ### Data Modeling
 
-* I thought this talk was on tuning?
-
-* Let's talk about Edgar.
-
 * MongoDB is completely denormalized (!)
 
-* New datatypes
+* Different datatypes
+
+* Different patterns
 
 --
 
@@ -238,7 +247,6 @@ Model B (MongoDB):
 ### Bottom line...
 
 - Schema design still matters
-- phantom reads, isolation, and transactions
 - Understand the query path/shape
 
 --
@@ -246,6 +254,7 @@ Model B (MongoDB):
 ### Statement Tuning
 
 - Similar to MySQL, look for bad statements
+- Tooling is lacking
 - Enter profiler
 
 
@@ -262,30 +271,6 @@ Turn it on: ```db.setProfilingLevel(level, slowms)```
 - level 1 uses slowms
 - level 2 is everything
 - turn it on, leave it on (!)
-
---
-
-### Profiler output
-
-```javascript
-{
-  "ts" : ISODate("2012-09-14T16:34:00.010Z"),   // date it occurred
-	"op" : "query",                            // the operation type
-	"ns" : "game.players",                     // the db and collection
-	"query" : { "total_games" : 1000 },        // query document
-	"ntoreturn" : 0,                           // # docs returned with limit()
-	"ntoskip" : 0,                             // # of docs to skip()
-	"nscanned" : 959967,                       // number of docs scanned
-	"keyUpdates" : 0,                          // updates of secondary indexes
-	"numYield" : 1,                            // # of times yields took place
-	"lockStats" : { ... },                     // subdoc of lock stats
-	"nreturned" : 0,                           // # docs actually returned
-	"responseLength" : 20,                     // size of doc
-	"millis" : 859,                            // how long it took
-	"client" : "127.0.0.1",                    // client asked for it
-	"user" : ""                                // the user asking for it
-}
-```
 
 --
 ### Helpful queries
@@ -316,6 +301,30 @@ db.system.profile.aggregate(
   "avg response time":{$avg:"$millis"}  
 }},
 {$sort: { "max response time":-1} });
+```
+
+--
+
+### Profiler output
+
+```javascript
+{
+  "ts" : ISODate("2012-09-14T16:34:00.010Z"),   // date it occurred
+	"op" : "query",                            // the operation type
+	"ns" : "game.players",                     // the db and collection
+	"query" : { "total_games" : 1000 },        // query document
+	"ntoreturn" : 0,                           // # docs returned with limit()
+	"ntoskip" : 0,                             // # of docs to skip()
+	"nscanned" : 959967,                       // number of docs scanned
+	"keyUpdates" : 0,                          // updates of secondary indexes
+	"numYield" : 1,                            // # of times yields took place
+	"lockStats" : { ... },                     // subdoc of lock stats
+	"nreturned" : 0,                           // # docs actually returned
+	"responseLength" : 20,                     // size of doc
+	"millis" : 859,                            // how long it took
+	"client" : "127.0.0.1",                    // client asked for it
+	"user" : ""                                // the user asking for it
+}
 ```
 
 --
@@ -373,12 +382,12 @@ mongod --setParameter internalQueryExecYieldIterations=1000
 
 | Version | Lock Granularity          | I am |
 | ------------- | ----------- | -------- |
-| 1.8   | Process | Pissed |
-| 2.2      | Database | Pissed |
-| 2.4     | Database     | Pissed |
-| 2.6   | Database | Pissed |
-| 3.0   | Collection | Still pissed, getting over it |
-| 3.0 WT | Document | Whew |
+| 1.8   | Process | :( |
+| 2.2      | Database | :( |
+| 2.4     | Database     | :( |
+| 2.6   | Database | :( |
+| 3.0   | Collection | :(, getting over it |
+| 3.0 WT | Document | :) |
 
 --
 ### Locks, Con't
@@ -390,6 +399,7 @@ mongod --setParameter internalQueryExecYieldIterations=1000
 - Locks are adaptive.
 - WiredTiger should help (!)
 - Not really a notion of Shared or Exclusive locks like Inno
+- No performance schema equivalent
 
 --
 
@@ -418,19 +428,42 @@ error: { "$err" : "operation exceeded time limit", "code" : 50 }
 
 ### Instance Tuning
 
+- mmapv1 engine uses mmap!
+- WT cache sizing
+
+```javascript
+cache_size=5000M
+```
+
+- read ahead tuning
+- compression tradeoffs
+- DirectIO tradeoffs
 
 --
 
-### Random stuff
+### Story: Data locality matters
 
-- If sharded, check balancer
-- TTL indexes
-- systemLog.component.* log options
+- PostgreSQL
+- photo tables with details about a photo
+- photo has an owner, queries by user_id. (range scan)
+- photos get updated
+- See the problem?
+- pg_reorg to the rescue
 
+--
+
+### Storage Engine Choices
+
+> Choose the correct tool for the job!
+
+- mmapv1: reads, mature, limited, space amplification
+- WiredTiger: read/write, new, bright future
+- TokuSE: compression, write, Percona influence
+- RocksDB: write, in production
 
 
 --
-### Value of testing; A large payments site
+### Story: Value of testing; A large payments site
 
 - Abstract insert test
 

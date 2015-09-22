@@ -509,6 +509,16 @@ pre .xml .cdata {
 </section>
   </div>
   <div class="slide hidden" id="slide-3">
+    <section class="slide-content"><h3 id="order-matters">Order Matters</h3>
+<ul>
+<li>Data Modeling/Schema Design</li>
+<li>Statement tuning</li>
+<li>Instance tuning</li>
+<li><del>System tuning</del> &lt;-- I only have 50 minutes</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-4">
     <section class="slide-content"><h3 id="mongodb-performance-tuning-at-a-glance">MongoDB Performance Tuning at a glance</h3>
 <ul>
 <li>Not unlike MySQL</li>
@@ -522,23 +532,24 @@ pre .xml .cdata {
 <ul>
 <li>Mindset change</li>
 </ul>
-</section>
-  </div>
-  <div class="slide hidden" id="slide-4">
-    <section class="slide-content"><h3 id="data-modeling">Data Modeling</h3>
 <ul>
-<li><p>I thought this talk was on tuning?</p>
-</li>
-<li><p>Let&#39;s talk about Edgar.</p>
-</li>
-<li><p>MongoDB is completely denormalized (!)</p>
-</li>
-<li><p>New datatypes</p>
-</li>
+<li>Tooling</li>
 </ul>
 </section>
   </div>
   <div class="slide hidden" id="slide-5">
+    <section class="slide-content"><h3 id="data-modeling">Data Modeling</h3>
+<ul>
+<li><p>MongoDB is completely denormalized (!)</p>
+</li>
+<li><p>Different datatypes</p>
+</li>
+<li><p>Different patterns</p>
+</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-6">
     <section class="slide-content"><h3 id="example-of-typical-db-schema">Example of typical DB Schema</h3>
 <pre><code class="lang-sql">mysql&gt; desc employees;
 +<span class="comment">------------+---------------+------+-----+---------+-------+</span>
@@ -569,7 +580,7 @@ mysql&gt; desc departments;
 +<span class="comment">-----------+-------------+------+-----+---------+-------+</span></code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-6">
+  <div class="slide hidden" id="slide-7">
     <section class="slide-content"><h3 id="example-of-typical-db-queries">Example of typical DB queries</h3>
 <pre><code class="lang-sql"> <span class="operator"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees e, departments d, dept_emp de
  <span class="keyword">WHERE</span> e.emp_no = de.emp_no <span class="keyword">AND</span> de.dept_no = d.dept_no
@@ -586,7 +597,7 @@ mysql&gt; desc departments;
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-7">
+  <div class="slide hidden" id="slide-8">
     <section class="slide-content"><h3 id="sample-schema-in-mongodb">Sample Schema in MongoDB</h3>
 <pre><code>
 </code></pre>
@@ -608,7 +619,7 @@ mysql&gt; desc departments;
 }</span></code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-8">
+  <div class="slide hidden" id="slide-9">
     <section class="slide-content"><h3 id="mongodb-presents-new-options-new-challenges-">MongoDB presents new options, new challenges..</h3>
 <pre><code class="lang-json">{
     "<span class="attribute">_id</span>": <span class="value"><span class="number">100</span></span>,
@@ -626,7 +637,7 @@ mysql&gt; desc departments;
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-9">
+  <div class="slide hidden" id="slide-10">
     <section class="slide-content"><h3 id="example-tags">Example: Tags</h3>
 <ul>
 <li>A blog post example using an array of tags possible per post</li>
@@ -653,7 +664,7 @@ mysql&gt; desc departments;
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-10">
+  <div class="slide hidden" id="slide-11">
     <section class="slide-content"><h3 id="example-tags-con-t">Example: Tags Con&#39;t</h3>
 <p>Model B (MongoDB):</p>
 <pre><code class="lang-javascript">&gt; db.posts.find({<span class="string">'tags'</span>:<span class="string">'camping'</span>}).pretty()
@@ -693,24 +704,24 @@ mysql&gt; desc departments;
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-11">
+  <div class="slide hidden" id="slide-12">
     <section class="slide-content"><h3 id="bottom-line-">Bottom line...</h3>
 <ul>
 <li>Schema design still matters</li>
-<li>phantom reads, isolation, and transactions</li>
 <li>Understand the query path/shape</li>
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-12">
+  <div class="slide hidden" id="slide-13">
     <section class="slide-content"><h3 id="statement-tuning">Statement Tuning</h3>
 <ul>
 <li>Similar to MySQL, look for bad statements</li>
+<li>Tooling is lacking</li>
 <li>Enter profiler</li>
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-13">
+  <div class="slide hidden" id="slide-14">
     <section class="slide-content"><h3 id="mongodb-profiler">MongoDB profiler</h3>
 <ul>
 <li>Runs in the background capturing what has been run on the DB.</li>
@@ -723,27 +734,6 @@ mysql&gt; desc departments;
 <li>level 2 is everything</li>
 <li>turn it on, leave it on (!)</li>
 </ul>
-</section>
-  </div>
-  <div class="slide hidden" id="slide-14">
-    <section class="slide-content"><h3 id="profiler-output">Profiler output</h3>
-<pre><code class="lang-javascript">{
-  <span class="string">"ts"</span> : ISODate(<span class="string">"2012-09-14T16:34:00.010Z"</span>),   <span class="comment">// date it occurred</span>
-    <span class="string">"op"</span> : <span class="string">"query"</span>,                            <span class="comment">// the operation type</span>
-    <span class="string">"ns"</span> : <span class="string">"game.players"</span>,                     <span class="comment">// the db and collection</span>
-    <span class="string">"query"</span> : { <span class="string">"total_games"</span> : <span class="number">1000</span> },        <span class="comment">// query document</span>
-    <span class="string">"ntoreturn"</span> : <span class="number">0</span>,                           <span class="comment">// # docs returned with limit()</span>
-    <span class="string">"ntoskip"</span> : <span class="number">0</span>,                             <span class="comment">// # of docs to skip()</span>
-    <span class="string">"nscanned"</span> : <span class="number">959967</span>,                       <span class="comment">// number of docs scanned</span>
-    <span class="string">"keyUpdates"</span> : <span class="number">0</span>,                          <span class="comment">// updates of secondary indexes</span>
-    <span class="string">"numYield"</span> : <span class="number">1</span>,                            <span class="comment">// # of times yields took place</span>
-    <span class="string">"lockStats"</span> : { ... },                     <span class="comment">// subdoc of lock stats</span>
-    <span class="string">"nreturned"</span> : <span class="number">0</span>,                           <span class="comment">// # docs actually returned</span>
-    <span class="string">"responseLength"</span> : <span class="number">20</span>,                     <span class="comment">// size of doc</span>
-    <span class="string">"millis"</span> : <span class="number">859</span>,                            <span class="comment">// how long it took</span>
-    <span class="string">"client"</span> : <span class="string">"127.0.0.1"</span>,                    <span class="comment">// client asked for it</span>
-    <span class="string">"user"</span> : <span class="string">""</span>                                <span class="comment">// the user asking for it</span>
-}</code></pre>
 </section>
   </div>
   <div class="slide hidden" id="slide-15">
@@ -776,6 +766,27 @@ db.system.profile.aggregate(
 </section>
   </div>
   <div class="slide hidden" id="slide-16">
+    <section class="slide-content"><h3 id="profiler-output">Profiler output</h3>
+<pre><code class="lang-javascript">{
+  <span class="string">"ts"</span> : ISODate(<span class="string">"2012-09-14T16:34:00.010Z"</span>),   <span class="comment">// date it occurred</span>
+    <span class="string">"op"</span> : <span class="string">"query"</span>,                            <span class="comment">// the operation type</span>
+    <span class="string">"ns"</span> : <span class="string">"game.players"</span>,                     <span class="comment">// the db and collection</span>
+    <span class="string">"query"</span> : { <span class="string">"total_games"</span> : <span class="number">1000</span> },        <span class="comment">// query document</span>
+    <span class="string">"ntoreturn"</span> : <span class="number">0</span>,                           <span class="comment">// # docs returned with limit()</span>
+    <span class="string">"ntoskip"</span> : <span class="number">0</span>,                             <span class="comment">// # of docs to skip()</span>
+    <span class="string">"nscanned"</span> : <span class="number">959967</span>,                       <span class="comment">// number of docs scanned</span>
+    <span class="string">"keyUpdates"</span> : <span class="number">0</span>,                          <span class="comment">// updates of secondary indexes</span>
+    <span class="string">"numYield"</span> : <span class="number">1</span>,                            <span class="comment">// # of times yields took place</span>
+    <span class="string">"lockStats"</span> : { ... },                     <span class="comment">// subdoc of lock stats</span>
+    <span class="string">"nreturned"</span> : <span class="number">0</span>,                           <span class="comment">// # docs actually returned</span>
+    <span class="string">"responseLength"</span> : <span class="number">20</span>,                     <span class="comment">// size of doc</span>
+    <span class="string">"millis"</span> : <span class="number">859</span>,                            <span class="comment">// how long it took</span>
+    <span class="string">"client"</span> : <span class="string">"127.0.0.1"</span>,                    <span class="comment">// client asked for it</span>
+    <span class="string">"user"</span> : <span class="string">""</span>                                <span class="comment">// the user asking for it</span>
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-17">
     <section class="slide-content"><h3 id="explain-the-output">Explain the output</h3>
 <pre><code class="lang-javascript">db.players.find({ <span class="string">"total_games"</span> : <span class="number">1000</span> }).explain();
 {
@@ -800,7 +811,7 @@ db.system.profile.aggregate(
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-17">
+  <div class="slide hidden" id="slide-18">
     <section class="slide-content"><h3 id="query-plans">Query plans</h3>
 <ul>
 <li>Caches the plans for those query shapes that can have more than one viable plan</li>
@@ -816,7 +827,7 @@ db.system.profile.aggregate(
 <p><a href="https://github.com/mongodb/mongo/blob/master/src/mongo/db/query/query_knobs.h#L99.">query_knobs.h</a></p>
 </section>
   </div>
-  <div class="slide hidden" id="slide-18">
+  <div class="slide hidden" id="slide-19">
     <section class="slide-content"><h3 id="locks">Locks</h3>
 <ul>
 <li>F these locks.</li>
@@ -833,38 +844,38 @@ db.system.profile.aggregate(
 <tr>
 <td>1.8</td>
 <td>Process</td>
-<td>Pissed</td>
+<td>:(</td>
 </tr>
 <tr>
 <td>2.2</td>
 <td>Database</td>
-<td>Pissed</td>
+<td>:(</td>
 </tr>
 <tr>
 <td>2.4</td>
 <td>Database</td>
-<td>Pissed</td>
+<td>:(</td>
 </tr>
 <tr>
 <td>2.6</td>
 <td>Database</td>
-<td>Pissed</td>
+<td>:(</td>
 </tr>
 <tr>
 <td>3.0</td>
 <td>Collection</td>
-<td>Still pissed, getting over it</td>
+<td>:(, getting over it</td>
 </tr>
 <tr>
 <td>3.0 WT</td>
 <td>Document</td>
-<td>Whew</td>
+<td>:)</td>
 </tr>
 </tbody>
 </table>
 </section>
   </div>
-  <div class="slide hidden" id="slide-19">
+  <div class="slide hidden" id="slide-20">
     <section class="slide-content"><h3 id="locks-con-t">Locks, Con&#39;t</h3>
 <ul>
 <li><a href="https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock">Readers-writer lock</a></li>
@@ -876,10 +887,11 @@ db.system.profile.aggregate(
 <li>Locks are adaptive.</li>
 <li>WiredTiger should help (!)</li>
 <li>Not really a notion of Shared or Exclusive locks like Inno</li>
+<li>No performance schema equivalent</li>
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-20">
+  <div class="slide hidden" id="slide-21">
     <section class="slide-content"><h3 id="current-sessions">Current Sessions</h3>
 <pre><code class="lang-javascript">db.currentOp();</code></pre>
 <ul>
@@ -895,21 +907,47 @@ db.system.profile.aggregate(
 error: { <span class="string">"$err"</span> : <span class="string">"operation exceeded time limit"</span>, <span class="string">"code"</span> : <span class="number">50</span> }</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-21">
-    <section class="slide-content"><h3 id="instance-tuning">Instance Tuning</h3>
-</section>
-  </div>
   <div class="slide hidden" id="slide-22">
-    <section class="slide-content"><h3 id="random-stuff">Random stuff</h3>
+    <section class="slide-content"><h3 id="instance-tuning">Instance Tuning</h3>
 <ul>
-<li>If sharded, check balancer</li>
-<li>TTL indexes</li>
-<li>systemLog.component.* log options</li>
+<li>mmapv1 engine uses mmap!</li>
+<li>WT cache sizing</li>
+</ul>
+<pre><code class="lang-javascript">cache_size=<span class="number">5000</span>M</code></pre>
+<ul>
+<li>read ahead tuning</li>
+<li>compression tradeoffs</li>
+<li>DirectIO tradeoffs</li>
 </ul>
 </section>
   </div>
   <div class="slide hidden" id="slide-23">
-    <section class="slide-content"><h3 id="value-of-testing-a-large-payments-site">Value of testing; A large payments site</h3>
+    <section class="slide-content"><h3 id="story-data-locality-matters">Story: Data locality matters</h3>
+<ul>
+<li>PostgreSQL</li>
+<li>photo tables with details about a photo</li>
+<li>photo has an owner, queries by user_id. (range scan)</li>
+<li>photos get updated</li>
+<li>See the problem?</li>
+<li>pg_reorg to the rescue</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-24">
+    <section class="slide-content"><h3 id="storage-engine-choices">Storage Engine Choices</h3>
+<blockquote>
+<p>Choose the correct tool for the job!</p>
+</blockquote>
+<ul>
+<li>mmapv1: reads, mature, limited, space amplification</li>
+<li>WiredTiger: read/write, new, bright future</li>
+<li>TokuSE: compression, write, Percona influence</li>
+<li>RocksDB: write, in production</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-25">
+    <section class="slide-content"><h3 id="story-value-of-testing-a-large-payments-site">Story: Value of testing; A large payments site</h3>
 <ul>
 <li>Abstract insert test</li>
 </ul>
@@ -929,7 +967,7 @@ error: { <span class="string">"$err"</span> : <span class="string">"operation ex
 </ul>
 </section>
   </div>
-  <div class="slide hidden" id="slide-24">
+  <div class="slide hidden" id="slide-26">
     <section class="slide-content"><div class="author">
   <h1 class="name">Kenny Gorman</h1>
     <h3 class="twitter">
