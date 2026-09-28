@@ -2,7 +2,7 @@ title: MongoDB Performance Tuning for MySQL DBA's and Developers
 author:
   name: Kenny Gorman
   twitter: kennygorman
-  url: http://kennygorman.com
+  url: https://kennygorman.dev
   email: kenny.gorman@rackspace.com
 output: mongodb-performance-mysql.html
 controls: true
@@ -23,7 +23,7 @@ theme: theme
 
 * Oracle, MySQL, PostgreSQL, MongoDB, Apache Spark
 
-* Obsessed: [http://www.kennygorman.com](http://www.kennygorman.com)
+* Obsessed: [https://kennygorman.dev](https://kennygorman.dev)
 
 * MongoDB 1.2. Wrote original mongostat tool
 
